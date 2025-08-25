@@ -1,4 +1,7 @@
-# `n` – unified command to launch a Node package manager
+
+# Development is stopped in favor of the project [ni](https://github.com/antfu-collective/ni)
+
+## `n` – unified command to launch a Node package manager
 
 **TL;DR: Forget about package manager names — just always use `n`:**
 ```shell
