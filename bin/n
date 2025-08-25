@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+
+const { spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+function findUp(filenames, cwd) {
+	let dir = cwd;
+	while (dir !== path.parse(dir).root) {
+		for (const filename of filenames) {
+			if (fs.existsSync(path.join(dir, filename))) {
+				return path.join(dir, filename);
+			}
+		}
+		dir = path.dirname(dir);
+	}
+	return null;
+}
+
+const cwd = process.cwd();
+const lockFiles = [
+	{ name: 'pnpm-lock.yaml', cmd: 'pnpm' },
+	{ name: 'yarn.lock', cmd: 'yarn' },
+	{ name: 'bun.lockb', cmd: 'bun' },
+	{ name: 'package-lock.json', cmd: 'npm' },
+];
+
+let pkgManager = null;
+for (const { name, cmd } of lockFiles) {
+	if (findUp([name], cwd)) {
+		pkgManager = cmd;
+		break;
+	}
+}
+
+if (!pkgManager) {
+	// fallback: check for package.json
+	if (findUp(['package.json'], cwd)) {
+		pkgManager = 'npm';
+	} else {
+		console.error('No package manager or package.json found.');
+		process.exit(1);
+	}
+}
+
+const args = process.argv.slice(2);
+const result = spawnSync(pkgManager, args, { stdio: 'inherit' });
+process.exit(result.status ?? 1);
